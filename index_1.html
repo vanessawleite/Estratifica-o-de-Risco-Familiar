@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escala de Risco Familiar Coelho-Savassi - Versão Completa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Date adapter for Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .modal {
+            display: none; position: fixed; z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0,0,0,0.5);
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background-color: #ffffff; margin: auto; padding: 24px;
+            border-radius: 8px; width: 90%; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content-sm {
+             max-width: 500px;
+        }
+        .modal-content-lg {
+            max-width: 768px;
+        }
+        .close-button {
+            color: #aaa; float: right; font-size: 28px;
+            font-weight: bold; cursor: pointer;
+        }
+        .close-button:hover, .close-button:focus {
+            color: black; text-decoration: none;
+        }
+        .table th, .table td {
+            padding: 8px; 
+            border: 1px solid #e5e7eb; 
+            vertical-align: middle;
+            font-size: 0.875rem; 
+        }
+        .table th {
+            background-color: #f9fafb; 
+            font-weight: 600; 
+        }
+        .sentinel-description {
+            display: block;
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+        input[type="number"], input[type="text"], select, textarea {
+            border: 1px solid #d1d5db; 
+            border-radius: 0.375rem; 
+            padding: 0.4rem 0.6rem; 
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 0.8rem; 
+        }
+        .multiplicador-input {
+            width: 60px !important; 
+            padding: 0.4rem;
+        }
+        .radio-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .radio-group label {
+            margin-left: 4px; 
+            font-size: 0.8rem;
+        }
+        .radio-group input[type="radio"] {
+            width: auto; 
+            accent-color: #3b82f6; 
+        }
+        .radio-group input[type="radio"].custom-radio-lg {
+            width: 1.15rem;
+            height: 1.15rem;
+        }
+        .radio-group label.custom-label-lg {
+            font-size: 0.9rem;
+            margin-left: 6px; 
+        }
+        input[type="number"]:focus, input[type="text"]:focus, select:focus, textarea:focus {
+            outline: 2px solid transparent; outline-offset: 2px;
+            border-color: #2563eb; box-shadow: 0 0 0 2px #3b82f6;
+        }
+        .btn {
+            padding: 0.6rem 1.2rem; 
+            border-radius: 0.375rem;
+            font-weight: 500; cursor: pointer; transition: background-color 0.2s;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; 
+        }
+        .btn-primary { background-color: #3b82f6; color: white; }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .btn-secondary { background-color: #6b7280; color: white; }
+        .btn-secondary:hover { background-color: #4b5563; }
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-success:hover { background-color: #059669; }
+        .btn-warning { background-color: #f59e0b; color: white; }
+        .btn-warning:hover { background-color: #d97706; }
+        .custom-checkbox { margin-right: 0.5rem; }
+        .status-message {
+            padding: 0.5rem 1rem; margin-top: 0.5rem;
+            border-radius: 0.375rem; font-size: 0.875rem; text-align: center;
+        }
+        .status-success { background-color: #d1fae5; color: #065f46; }
+        .status-error { background-color: #fee2e2; color: #991b1b; }
+        .status-info { background-color: #dbeafe; color: #1e40af; }
+        #row_densidade_domiciliar label {
+            font-size: 0.75rem; 
+        }
+        #row_densidade_domiciliar input[type="number"] {
+             width: 50px !important; 
+             padding: 0.3rem;
+        }
+        .fixed-multiplier-text {
+            font-size: 0.8rem;
+            color: #4b5563; 
+            text-align: center;
+        }
+        .form-label {
+            display: block; 
+            margin-bottom: 0.25rem;
+        }
+        .header-logo {
+            max-width: 200px;
+            max-height: 70px; 
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem; 
+        }
+        .family-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .family-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .family-card.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .risk-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .risk-low { background-color: #d1fae5; color: #065f46; }
+        .risk-medium { background-color: #fef3c7; color: #92400e; }
+        .risk-high { background-color: #fee2e2; color: #991b1b; }
+        .tab-button {
+            padding: 0.5rem 1rem;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-button.active {
+            border-bottom-color: #3b82f6;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            height: 400px;
+        }
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #374151;
+        }
+        .alert-card {
+            border-left: 4px solid #ef4444;
+            background-color: #fef2f2;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0 0.375rem 0.375rem 0;
+        }
+        .alert-title {
+            font-weight: 600;
+            color: #991b1b;
+            margin-bottom: 0.5rem;
+        }
+        .alert-content {
+            color: #7f1d1d;
+            font-size: 0.875rem;
+        }
+        .report-section {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        .report-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <div class="container mx-auto max-w-7xl"> 
+        <header class="mb-6 text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Escala de Risco Familiar de Coelho-Savassi</h1>
+            <div class="flex justify-center my-3">
+                 <img id="logoImage" src="https://placehold.co/300x80/02407e/FFFFFF?text=SESAU+AQUIDAUANA&font=raleway" alt="Logótipo da Instituição" class="header-logo" crossorigin="anonymous">
+            </div>
+            <p class="text-gray-600 mt-1">Desenvolvido por: Enf. Daniel F. Marmol - Coord. Saúde Digital</p>
+            <p class="text-gray-500 text-sm">danielfimafi@gmail.com</p>
+            <p class="text-blue-600 text-sm font-medium">Versão Completa - Com Relatórios e Gráficos</p>
+            <div id="globalStatusMessage" class="status-message" style="display: none;"></div>
+        </header>
+
+        <!-- Navegação por Abas -->
+        <div class="bg-white rounded-lg shadow-lg mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8 px-6">
+                    <button class="tab-button active" data-tab="nova-estratificacao">Nova Estratificação</button>
+                    <button class="tab-button" data-tab="familias-salvas">Famílias Salvas</button>
+                    <button class="tab-button" data-tab="relatorios-graficos">Relatórios e Gráficos</button>
+                    <button class="tab-button" data-tab="exportar-dados">Exportar Dados</button>
+                </nav>
+            </div>
+
+            <!-- Aba: Nova Estratificação -->
+            <div id="nova-estratificacao" class="tab-content active p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-700">Nova Estratificação</h2>
+                    <div class="flex gap-2">
+                        <button id="loadFamilyButton" class="btn btn-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                            </svg>
+                            Carregar Família
+                        </button>
+                        <button id="saveFamilyButton" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                                <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L8.5 8.293V1H2z"/>
+                            </svg>
+                            Salvar Estratificação
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6">
+                    <div>
+                        <label for="responsavel_familiar" class="form-label text-sm font-medium text-gray-700">Responsável familiar:</label>
+                        <input type="text" id="responsavel_familiar" name="responsavel_familiar">
+                    </div>
+                    <div>
+                        <label for="esf_responsavel" class="form-label text-sm font-medium text-gray-700">ESF responsável:</label>
+                        <input type="text" id="esf_responsavel" name="esf_responsavel">
+                    </div>
+                    <div>
+                        <label for="micro_area" class="form-label text-sm font-medium text-gray-700">Micro Área:</label>
+                        <input type="text" id="micro_area" name="micro_area">
+                    </div>
+                    <div>
+                        <label for="responsavel_classificacao" class="form-label text-sm font-medium text-gray-700">Responsável pela classificação:</label>
+                        <input type="text" id="responsavel_classificacao" name="responsavel_classificacao">
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-700 mb-3 border-t pt-4">Sentinelas de Risco</h3> 
+                <table class="w-full table-auto border-collapse table" id="escalaRiscoTable">
+                    <thead>
+                        <tr class="text-left text-gray-700">
+                            <th>Sentinela de Risco</th>
+                            <th class="text-center">Presente? (Sim/Não) / Valores</th>
+                            <th class="text-center">Multiplicador</th>
+                            <th class="text-center">Pontos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Itens da Escala serão inseridos aqui pelo JavaScript -->
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-gray-100">
+                            <td colspan="3" class="text-right font-bold text-lg">Escore Total de Risco:</td>
+                            <td id="escore_total" class="font-bold text-lg text-center">0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                 <p class="mt-3 text-xs text-gray-500"> 
+                     Sobre o Multiplicador: 1 (padrão): Situação típica. 0,5: Leve/parcial. 1,5: Moderadamente agravada. 2: Severamente agravada.
+                </p>
+
+                <div class="mt-6 text-center">
+                    <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
+                        <button id="printReportButton" class="btn btn-success">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                                <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
+                                <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+                            </svg>
+                            Imprimir Relatório
+                        </button>
+                        <button id="clearAllFormsButton" class="btn btn-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                                <path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828zm.66 11.34L3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293z"/>
+                            </svg>
+                            Limpar Formulário
+                        </button>
+                    </div>
+                    <div id="printStatus" class="status-message" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Aba: Famílias Salvas -->
+            <div id="familias-salvas" class="tab-content p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-700">Famílias Estratificadas</h2>
+                    <div class="flex gap-2">
+                        <input type="text" id="searchFamilies" placeholder="Buscar por nome da família..." class="px-3 py-2 border border-gray-300 rounded-md w-64">
+                        <button id="refreshFamiliesList" class="btn btn-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                            Atualizar
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="familiesList" class="space-y-2">
+                    <!-- Lista de famílias será inserida aqui -->
+                </div>
+                
+                <div id="noFamiliesMessage" class="text-center py-8 text-gray-500" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-4 text-gray-400" viewBox="0 0 16 16">
+                        <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                    <p>Nenhuma família estratificada encontrada.</p>
+                    <p class="text-sm">Comece criando uma nova estratificação na aba "Nova Estratificação".</p>
+                </div>
+            </div>
+
+            <!-- Aba: Relatórios e Gráficos -->
+            <div id="relatorios-graficos" class="tab-content p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-700">Relatórios e Gráficos</h2>
+                    <button id="refreshReports" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                        </svg>
+                        Atualizar Relatórios
+                    </button>
+                </div>
+
+                <!-- Dashboard de Indicadores -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card">
+                        <div class="stat-number text-blue-600" id="totalFamilies">0</div>
+                        <div class="stat-label">Total de Famílias</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number text-red-600" id="highRiskFamilies">0</div>
+                        <div class="stat-label">Famílias Alto Risco</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number text-yellow-600" id="mediumRiskFamilies">0</div>
+                        <div class="stat-label">Famílias Médio Risco</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number text-green-600" id="lowRiskFamilies">0</div>
+                        <div class="stat-label">Famílias Baixo Risco</div>
+                    </div>
+                </div>
+
+                <!-- Alertas -->
+                <div id="alertsSection" class="mb-8">
+                    <!-- Alertas serão inseridos aqui -->
+                </div>
+
+                <!-- Gráficos -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="chart-container">
+                        <div class="chart-title">Distribuição de Níveis de Risco</div>
+                        <canvas id="riskDistributionChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Sentinelas de Risco Mais Frequentes</div>
+                        <canvas id="sentinelFrequencyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="chart-container">
+                        <div class="chart-title">Estratificações por ESF</div>
+                        <canvas id="esfChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Evolução Temporal</div>
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Relatórios Detalhados -->
+                <div class="report-section">
+                    <div class="report-title">Relatório Gerencial</div>
+                    <div id="managementReport">
+                        <!-- Relatório será inserido aqui -->
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <div class="report-title">Ranking de Fatores de Risco</div>
+                    <div id="riskFactorsRanking">
+                        <!-- Ranking será inserido aqui -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba: Exportar Dados -->
+            <div id="exportar-dados" class="tab-content p-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-6">Exportar Dados</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-medium text-gray-800 mb-3">Exportar como PDF</h3>
+                        <p class="text-sm text-gray-600 mb-4">Gera um relatório em PDF da aba de Relatórios e Gráficos.</p>
+                        <button id="exportPdfButton" class="btn btn-primary w-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                                <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/>
+                                <path d="M14 14V2H2v12h12zM2 1h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+                                <path d="M10.5 8.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm-2 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm-2 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm-2 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5z"/>
+                            </svg>
+                            Exportar PDF
+                        </button>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-medium text-gray-800 mb-3">Exportar como JSON</h3>
+                        <p class="text-sm text-gray-600 mb-4">Exporta todos os dados em formato JSON para backup ou transferência.</p>
+                        <button id="exportJsonButton" class="btn btn-primary w-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            Exportar JSON
+                        </button>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-medium text-gray-800 mb-3">Exportar como CSV</h3>
+                        <p class="text-sm text-gray-600 mb-4">Exporta dados em formato CSV para análise em planilhas.</p>
+                        <button id="exportCsvButton" class="btn btn-primary w-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            Exportar CSV
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-blue-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-medium text-blue-800 mb-3">Importar Dados</h3>
+                    <p class="text-sm text-blue-600 mb-4">Importar dados de um arquivo JSON exportado anteriormente.</p>
+                    <input type="file" id="importJsonFile" accept=".json" class="mb-3">
+                    <button id="importJsonButton" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                            <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                        </svg>
+                        Importar JSON
+                    </button>
+                </div>
+                
+                <div id="exportStatus" class="status-message" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Carregar Família -->
+    <div id="loadFamilyModal" class="modal">
+        <div class="modal-content modal-content-lg">
+            <span class="close-button" id="closeLoadFamilyModal">&times;</span>
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6">Carregar Família Salva</h2>
+            <div class="mb-4">
+                <input type="text" id="searchLoadFamilies" placeholder="Buscar família..." class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <div id="loadFamiliesList" class="max-h-96 overflow-y-auto">
+                <!-- Lista de famílias para carregar -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content modal-content-sm">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4" id="confirmTitle">Confirmar Ação</h3>
+            <p class="text-gray-600 mb-6" id="confirmMessage">Tem certeza que deseja realizar esta ação?</p>
+            <div class="flex justify-end gap-3">
+                <button id="confirmCancel" class="btn btn-secondary">Cancelar</button>
+                <button id="confirmOk" class="btn btn-primary">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração da aplicação
+        const AppConfig = {
+            storageKey: 'sesau_familias_estratificadas',
+            riskScaleItems: [
+                { id: "acamado", nome: "Acamado", descricao: "Toda pessoa restrita ao domicílio, por falta de habilidade e/ou incapacidade de locomoção por si só a qualquer unidade de saúde.", escoreBase: 3, tipo: "sim_nao" },
+                { id: "deficiencia_fisica", nome: "Deficiência física", descricao: "Qualquer condição que limite a mobilidade ou a capacidade física do indivíduo, exigindo cuidados ou suporte especial.", escoreBase: 3, tipo: "sim_nao" },
+                { id: "deficiencia_mental", nome: "Deficiência mental", descricao: "Qualquer condição que afete o desenvolvimento intelectual ou a saúde mental, necessitando de suporte contínuo.", escoreBase: 3, tipo: "sim_nao" },
+                { id: "baixas_condicoes_saneamento", nome: "Baixas condições de saneamento", descricao: "Domicílio sem acesso à rede de esgoto ou fossa séptica, e/ou sem coleta de lixo regular.", escoreBase: 3, tipo: "sim_nao" },
+                { id: "desnutricao_grave", nome: "Desnutrição grave", descricao: "Indivíduo com diagnóstico clínico ou indicadores antropométricos (peso/altura) de desnutrição grave.", escoreBase: 3, tipo: "sim_nao" },
+                { id: "drogadicao", nome: "Drogadição", descricao: "Uso abusivo de substâncias psicoativas por um ou mais membros, com impacto negativo na dinâmica familiar.", escoreBase: 2, tipo: "sim_nao" },
+                { id: "desemprego", nome: "Desemprego", descricao: "Principal provedor da família ou múltiplos membros adultos sem emprego formal ou fonte de renda estável.", escoreBase: 2, tipo: "sim_nao" },
+                { id: "analfabetismo", nome: "Analfabetismo", descricao: "Membros adultos da família que não sabem ler ou escrever, dificultando o acesso à informação e serviços.", escoreBase: 1, tipo: "sim_nao" },
+                { id: "menor_6_meses", nome: "Menor de 6 meses", descricao: "Presença de criança com menos de 6 meses no domicílio, período de maior vulnerabilidade.", escoreBase: 1, tipo: "sim_nao" },
+                { id: "maior_70_anos", nome: "Maior de 70 anos", descricao: "Presença de idoso com 70 anos ou mais, que pode apresentar maior fragilidade e necessidade de acompanhamento.", escoreBase: 1, tipo: "sim_nao" },
+                { id: "hipertensao", nome: "Hipertensão arterial sistêmica", descricao: "Presença de membro(s) com diagnóstico de HAS, especialmente sem acompanhamento regular.", escoreBase: 1, tipo: "sim_nao" },
+                { id: "diabetes", nome: "Diabetes Mellitus", descricao: "Presença de membro(s) com diagnóstico de DM, especialmente sem acompanhamento regular.", escoreBase: 1, tipo: "sim_nao" },
+                { id: "densidade_domiciliar", nome: "Relação morador/cômodo", descricao: "Relação entre o número de moradores e o de cômodos da casa (excluindo banheiros e áreas de serviço).", tipo: "densidade", fixedMultiplier: 1 } 
+            ]
+        };
+
+        // Utilitários
+        const Utils = {
+            $: (selector) => document.querySelector(selector),
+            $$: (selector) => document.querySelectorAll(selector),
+            
+            showStatus(element, message, type = 'success') {
+                if (!element) return;
+                element.textContent = message;
+                element.className = `status-message status-${type}`; 
+                element.style.display = 'block';
+                setTimeout(() => { element.style.display = 'none'; }, 4000);
+            },
+
+            generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            },
+
+            formatDate(date) {
+                return new Date(date).toLocaleString('pt-BR');
+            },
+
+            getRiskLevel(score) {
+                if (score < 5) return { level: 'low', text: 'Baixo', class: 'risk-low' };
+                if (score < 10) return { level: 'medium', text: 'Médio', class: 'risk-medium' };
+                return { level: 'high', text: 'Alto', class: 'risk-high' };
+            },
+
+            downloadFile(content, filename, type = 'application/json') {
+                const blob = new Blob([content], { type });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            },
+
+            async exportToPdf(elementId, filename) {
+                const { jsPDF } = window.jspdf;
+                const element = document.getElementById(elementId);
+                if (!element) {
+                    console.error('Elemento não encontrado para exportação PDF:', elementId);
+                    return;
+                }
+
+                // Temporariamente mostra o elemento se estiver oculto
+                const originalDisplay = element.style.display;
+                element.style.display = 'block';
+
+                // Captura o conteúdo do elemento como imagem
+                const canvas = await html2canvas(element, {
+                    scale: 2, // Aumenta a resolução para melhor qualidade
+                    useCORS: true // Permite carregar imagens de outras origens
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210; // A4 width in mm
+                const pageHeight = 297; // A4 height in mm
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                pdf.save(filename);
+
+                // Restaura o display original do elemento
+                element.style.display = originalDisplay;
+            }
+        };
+
+        // Gerenciador de armazenamento local
+        class StorageManager {
+            static save(data) {
+                try {
+                    const families = this.getAll();
+                    const existingIndex = families.findIndex(f => f.id === data.id);
+                    
+                    if (existingIndex >= 0) {
+                        families[existingIndex] = { ...data, updatedAt: new Date().toISOString() };
+                    } else {
+                        families.push({ ...data, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+                    }
+                    
+                    localStorage.setItem(AppConfig.storageKey, JSON.stringify(families));
+                    console.log('Dados salvos com sucesso no localStorage:', families);
+                    return true;
+                } catch (error) {
+                    console.error('Erro ao salvar dados no localStorage:', error);
+                    return false;
+                }
+            }
+
+            static getAll() {
+                try {
+                    const data = localStorage.getItem(AppConfig.storageKey);
+                    return data ? JSON.parse(data) : [];
+                } catch (error) {
+                    console.error('Erro ao carregar dados:', error);
+                    return [];
+                }
+            }
+
+            static getById(id) {
+                const families = this.getAll();
+                return families.find(f => f.id === id);
+            }
+
+            static delete(id) {
+                try {
+                    const families = this.getAll();
+                    const filtered = families.filter(f => f.id !== id);
+                    localStorage.setItem(AppConfig.storageKey, JSON.stringify(filtered));
+                    return true;
+                } catch (error) {
+                    console.error('Erro ao deletar dados:', error);
+                    return false;
+                }
+            }
+
+            static clear() {
+                try {
+                    localStorage.removeItem(AppConfig.storageKey);
+                    return true;
+                } catch (error) {
+                    console.error('Erro ao limpar dados:', error);
+                    return false;
+                }
+            }
+
+            static import(data) {
+                try {
+                    localStorage.setItem(AppConfig.storageKey, JSON.stringify(data));
+                    return true;
+                } catch (error) {
+                    console.error('Erro ao importar dados:', error);
+                    return false;
+                }
+            }
+        }
+
+        // Gerenciador de relatórios e gráficos
+        class ReportsManager {
+            constructor() {
+                this.charts = {};
+            }
+
+            generateReports() {
+                const families = StorageManager.getAll();
+                this.updateDashboard(families);
+                this.generateAlerts(families);
+                this.createCharts(families);
+                this.generateManagementReport(families);
+                this.generateRiskFactorsRanking(families);
+            }
+
+            updateDashboard(families) {
+                const total = families.length;
+                const riskCounts = { low: 0, medium: 0, high: 0 };
+                
+                families.forEach(family => {
+                    const risk = Utils.getRiskLevel(family.escoreTotal);
+                    riskCounts[risk.level]++;
+                });
+
+                Utils.$('#totalFamilies').textContent = total;
+                Utils.$('#highRiskFamilies').textContent = riskCounts.high;
+                Utils.$('#mediumRiskFamilies').textContent = riskCounts.medium;
+                Utils.$('#lowRiskFamilies').textContent = riskCounts.low;
+            }
+
+            generateAlerts(families) {
+                const alertsSection = Utils.$('#alertsSection');
+                const highRiskFamilies = families.filter(f => Utils.getRiskLevel(f.escoreTotal).level === 'high');
+                const oldAssessments = families.filter(f => {
+                    const daysSinceUpdate = (new Date() - new Date(f.updatedAt || f.createdAt)) / (1000 * 60 * 60 * 24);
+                    return daysSinceUpdate > 180; // 6 meses
+                });
+
+                let alertsHtml = '';
+
+                if (highRiskFamilies.length > 0) {
+                    alertsHtml += `
+                        <div class="alert-card">
+                            <div class="alert-title">⚠️ Famílias de Alto Risco</div>
+                            <div class="alert-content">
+                                ${highRiskFamilies.length} família(s) necessitam atenção prioritária: 
+                                ${highRiskFamilies.slice(0, 3).map(f => f.responsavelFamiliar).join(', ')}
+                                ${highRiskFamilies.length > 3 ? ` e mais ${highRiskFamilies.length - 3}...` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (oldAssessments.length > 0) {
+                    alertsHtml += `
+                        <div class="alert-card">
+                            <div class="alert-title">📅 Reavaliações Necessárias</div>
+                            <div class="alert-content">
+                                ${oldAssessments.length} família(s) precisam de reavaliação (mais de 6 meses): 
+                                ${oldAssessments.slice(0, 3).map(f => f.responsavelFamiliar).join(', ')}
+                                ${oldAssessments.length > 3 ? ` e mais ${oldAssessments.length - 3}...` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                alertsSection.innerHTML = alertsHtml;
+            }
+
+            createCharts(families) {
+                this.createRiskDistributionChart(families);
+                this.createSentinelFrequencyChart(families);
+                this.createESFChart(families);
+                this.createTimelineChart(families);
+            }
+
+            createRiskDistributionChart(families) {
+                const ctx = Utils.$('#riskDistributionChart');
+                if (!ctx) return;
+
+                const riskCounts = { low: 0, medium: 0, high: 0 };
+                families.forEach(family => {
+                    const risk = Utils.getRiskLevel(family.escoreTotal);
+                    riskCounts[risk.level]++;
+                });
+
+                if (this.charts.riskDistribution) {
+                    this.charts.riskDistribution.destroy();
+                }
+
+                this.charts.riskDistribution = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Baixo Risco', 'Médio Risco', 'Alto Risco'],
+                        datasets: [{
+                            data: [riskCounts.low, riskCounts.medium, riskCounts.high],
+                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            createSentinelFrequencyChart(families) {
+                const ctx = Utils.$('#sentinelFrequencyChart');
+                if (!ctx) return;
+
+                const sentinelCounts = {};
+                AppConfig.riskScaleItems.forEach(item => {
+                    if (item.tipo === 'sim_nao') {
+                        sentinelCounts[item.nome] = 0;
+                    }
+                });
+
+                families.forEach(family => {
+                    if (family.sentinelas) {
+                        Object.entries(family.sentinelas).forEach(([sentinelaId, data]) => {
+                            if (data.presente) {
+                                const item = AppConfig.riskScaleItems.find(i => i.id === sentinelaId);
+                                if (item) {
+                                    sentinelCounts[item.nome]++;
+                                }
+                            }
+                        });
+                    }
+                });
+
+                const sortedSentinels = Object.entries(sentinelCounts)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 8); // Top 8
+
+                if (this.charts.sentinelFrequency) {
+                    this.charts.sentinelFrequency.destroy();
+                }
+
+                this.charts.sentinelFrequency = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedSentinels.map(([name]) => name.length > 15 ? name.substring(0, 15) + '...' : name),
+                        datasets: [{
+                            label: 'Frequência',
+                            data: sortedSentinels.map(([, count]) => count),
+                            backgroundColor: '#3b82f6',
+                            borderColor: '#2563eb',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            createESFChart(families) {
+                const ctx = Utils.$('#esfChart');
+                if (!ctx) return;
+
+                const esfCounts = {};
+                families.forEach(family => {
+                    const esf = family.esfResponsavel || 'Não informado';
+                    esfCounts[esf] = (esfCounts[esf] || 0) + 1;
+                });
+
+                const sortedESFs = Object.entries(esfCounts)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 10); // Top 10
+
+                if (this.charts.esf) {
+                    this.charts.esf.destroy();
+                }
+
+                this.charts.esf = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedESFs.map(([name]) => name),
+                        datasets: [{
+                            label: 'Famílias',
+                            data: sortedESFs.map(([, count]) => count),
+                            backgroundColor: '#10b981',
+                            borderColor: '#059669',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            createTimelineChart(families) {
+                const ctx = Utils.$('#timelineChart');
+                if (!ctx) return;
+
+                // Agrupar por mês
+                const monthCounts = {};
+                families.forEach(family => {
+                    const date = new Date(family.createdAt || family.updatedAt);
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    monthCounts[monthKey] = (monthCounts[monthKey] || 0) + 1;
+                });
+
+                const sortedMonths = Object.entries(monthCounts).sort(([a], [b]) => a.localeCompare(b));
+
+                if (this.charts.timeline) {
+                    this.charts.timeline.destroy();
+                }
+
+                this.charts.timeline = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sortedMonths.map(([month]) => {
+                            const [year, monthNum] = month.split('-');
+                            return `${monthNum}/${year}`;
+                        }),
+                        datasets: [{
+                            label: 'Estratificações',
+                            data: sortedMonths.map(([, count]) => count),
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            generateManagementReport(families) {
+                const total = families.length;
+                if (total === 0) {
+                    Utils.$('#managementReport').innerHTML = '<p class="text-gray-500">Nenhum dado disponível para gerar relatório.</p>';
+                    return;
+                }
+
+                const riskCounts = { low: 0, medium: 0, high: 0 };
+                const esfCounts = {};
+                const microAreaCounts = {};
+                let totalScore = 0;
+
+                families.forEach(family => {
+                    const risk = Utils.getRiskLevel(family.escoreTotal);
+                    riskCounts[risk.level]++;
+                    
+                    const esf = family.esfResponsavel || 'Não informado';
+                    esfCounts[esf] = (esfCounts[esf] || 0) + 1;
+                    
+                    const microArea = family.microArea || 'Não informado';
+                    microAreaCounts[microArea] = (microAreaCounts[microArea] || 0) + 1;
+                    
+                    totalScore += family.escoreTotal || 0;
+                });
+
+                const averageScore = (totalScore / total).toFixed(2);
+                const highRiskPercentage = ((riskCounts.high / total) * 100).toFixed(1);
+
+                const reportHtml = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-3">Resumo Geral</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li>• Total de famílias: <strong>${total}</strong></li>
+                                <li>• Escore médio: <strong>${averageScore}</strong></li>
+                                <li>• Famílias alto risco: <strong>${riskCounts.high} (${highRiskPercentage}%)</strong></li>
+                                <li>• Famílias médio risco: <strong>${riskCounts.medium}</strong></li>
+                                <li>• Famílias baixo risco: <strong>${riskCounts.low}</strong></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-3">Distribuição por ESF</h4>
+                            <ul class="space-y-1 text-sm max-h-32 overflow-y-auto">
+                                ${Object.entries(esfCounts)
+                                    .sort(([,a], [,b]) => b - a)
+                                    .map(([esf, count]) => `<li>• ${esf}: <strong>${count}</strong></li>`)
+                                    .join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+
+                Utils.$('#managementReport').innerHTML = reportHtml;
+            }
+
+            generateRiskFactorsRanking(families) {
+                const sentinelCounts = {};
+                AppConfig.riskScaleItems.forEach(item => {
+                    if (item.tipo === 'sim_nao') {
+                        sentinelCounts[item.nome] = 0;
+                    }
+                });
+
+                families.forEach(family => {
+                    if (family.sentinelas) {
+                        Object.entries(family.sentinelas).forEach(([sentinelaId, data]) => {
+                            if (data.presente) {
+                                const item = AppConfig.riskScaleItems.find(i => i.id === sentinelaId);
+                                if (item) {
+                                    sentinelCounts[item.nome]++;
+                                }
+                            }
+                        });
+                    }
+                });
+
+                const sortedSentinels = Object.entries(sentinelCounts)
+                    .sort(([,a], [,b]) => b - a);
+
+                const total = families.length;
+                const rankingHtml = `
+                    <div class="space-y-3">
+                        ${sortedSentinels.map(([name, count], index) => {
+                            const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                            return `
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <div>
+                                        <span class="font-medium">${index + 1}. ${name}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="font-bold">${count}</span>
+                                        <span class="text-sm text-gray-500">(${percentage}%)</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+
+                Utils.$('#riskFactorsRanking').innerHTML = rankingHtml;
+            }
+        }
+
+        // Aplicação principal
+        class RiskAssessmentApp {
+            constructor() {
+                this.currentFamilyId = null;
+                this.reportsManager = new ReportsManager();
+                this.init();
+            }
+
+            init() {
+                this.setupTabs();
+                this.populateRiskTable();
+                this.setupEventListeners();
+                this.updateTotalScore();
+                this.loadFamiliesList();
+                this.reportsManager.generateReports();
+            }
+
+            setupTabs() {
+                const tabButtons = Utils.$$('.tab-button');
+                const tabContents = Utils.$$('.tab-content');
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const targetTab = button.dataset.tab;
+                        
+                        // Remove active class from all tabs
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        tabContents.forEach(content => content.classList.remove('active'));
+                        
+                        // Add active class to clicked tab
+                        button.classList.add('active');
+                        Utils.$(`#${targetTab}`).classList.add('active');
+                        
+                        // Refresh content when switching tabs
+                        if (targetTab === 'familias-salvas') {
+                            this.loadFamiliesList();
+                        } else if (targetTab === 'relatorios-graficos') {
+                            this.reportsManager.generateReports();
+                        }
+                    });
+                });
+            }
+
+            populateRiskTable() {
+                const tableBody = Utils.$('#escalaRiscoTable tbody');
+                if (!tableBody) return;
+                
+                tableBody.innerHTML = '';
+                
+                AppConfig.riskScaleItems.forEach(item => {
+                    const row = tableBody.insertRow();
+                    row.id = `row_${item.id}`;
+                    
+                    // Coluna do nome e descrição
+                    row.insertCell().innerHTML = `
+                        <span class="font-medium text-gray-800">${item.nome}</span>
+                        <small class="sentinel-description">${item.descricao}</small>`;
+
+                    // Coluna de input
+                    const inputCell = row.insertCell();
+                    inputCell.classList.add("text-center");
+                    
+                    if (item.tipo === "sim_nao") {
+                        inputCell.innerHTML = `
+                            <div class="radio-group justify-center">
+                                <input type="radio" id="${item.id}_sim" name="radio_${item.id}" value="${item.escoreBase}" class="custom-radio-lg">
+                                <label for="${item.id}_sim" class="custom-label-lg">Sim</label>
+                                <input type="radio" id="${item.id}_nao" name="radio_${item.id}" value="0" class="custom-radio-lg">
+                                <label for="${item.id}_nao" class="custom-label-lg">Não</label>
+                            </div>`;
+                    } else if (item.tipo === "densidade") {
+                        inputCell.innerHTML = `
+                            <div class="flex justify-center items-center gap-2">
+                                <label class="text-xs">Moradores:</label>
+                                <input type="number" id="moradores" min="1" max="20" class="w-16 text-center">
+                                <label class="text-xs">Cômodos:</label>
+                                <input type="number" id="comodos" min="1" max="20" class="w-16 text-center">
+                            </div>`;
+                    }
+
+                    // Coluna do multiplicador
+                    const multCell = row.insertCell();
+                    multCell.classList.add("text-center");
+                    
+                    if (item.fixedMultiplier) {
+                        multCell.innerHTML = `<span class="fixed-multiplier-text">${item.fixedMultiplier}</span>`;
+                    } else {
+                        multCell.innerHTML = `<input type="number" class="multiplicador-input" min="0.5" max="2" step="0.5" value="1" id="mult_${item.id}">`;
+                    }
+
+                    // Coluna dos pontos
+                    const pointsCell = row.insertCell();
+                    pointsCell.classList.add("text-center", "font-bold");
+                    pointsCell.innerHTML = `<span id="points_${item.id}">0.00</span>`;
+                });
+
+                // Adicionar event listeners
+                this.setupRiskTableListeners();
+            }
+
+            setupRiskTableListeners() {
+                // Listeners para radio buttons
+                AppConfig.riskScaleItems.forEach(item => {
+                    if (item.tipo === "sim_nao") {
+                        const radios = Utils.$$(`input[name="radio_${item.id}"]`);
+                        radios.forEach(radio => {
+                            radio.addEventListener('change', () => this.updateTotalScore());
+                        });
+                        
+                        const multInput = Utils.$(`#mult_${item.id}`);
+                        if (multInput) {
+                            multInput.addEventListener('input', () => this.updateTotalScore());
+                        }
+                    }
+                });
+
+                // Listeners para densidade domiciliar
+                const moradoresInput = Utils.$('#moradores');
+                const comodosInput = Utils.$('#comodos');
+                if (moradoresInput && comodosInput) {
+                    [moradoresInput, comodosInput].forEach(input => {
+                        input.addEventListener('input', () => this.updateTotalScore());
+                    });
+                }
+            }
+
+            updateTotalScore() {
+                let totalScore = 0;
+
+                AppConfig.riskScaleItems.forEach(item => {
+                    let points = 0;
+                    
+                    if (item.tipo === "sim_nao") {
+                        const selectedRadio = Utils.$(`input[name="radio_${item.id}"]:checked`);
+                        if (selectedRadio) {
+                            const baseScore = parseFloat(selectedRadio.value);
+                            const multiplier = parseFloat(Utils.$(`#mult_${item.id}`).value) || 1;
+                            points = baseScore * multiplier;
+                        }
+                    } else if (item.tipo === "densidade") {
+                        const moradores = parseInt(Utils.$('#moradores').value) || 0;
+                        const comodos = parseInt(Utils.$('#comodos').value) || 1;
+                        if (moradores > 0 && comodos > 0) {
+                            const densidade = moradores / comodos;
+                            if (densidade < 1) points = 0;
+                            else if (densidade <= 2) points = 1;
+                            else if (densidade <= 3) points = 2;
+                            else points = 3;
+                        }
+                    }
+
+                    const pointsElement = Utils.$(`#points_${item.id}`);
+                    if (pointsElement) {
+                        pointsElement.textContent = points.toFixed(2);
+                    }
+                    
+                    totalScore += points;
+                });
+
+                const totalElement = Utils.$('#escore_total');
+                if (totalElement) {
+                    totalElement.textContent = totalScore.toFixed(2);
+                }
+            }
+
+            setupEventListeners() {
+                // Botão salvar família
+                Utils.$('#saveFamilyButton').addEventListener('click', () => this.saveFamilyData());
+                
+                // Botão carregar família
+                Utils.$('#loadFamilyButton').addEventListener('click', () => this.showLoadFamilyModal());
+                
+                // Botão limpar formulário
+                Utils.$('#clearAllFormsButton').addEventListener('click', () => this.clearForm());
+                
+                // Botão imprimir
+                Utils.$('#printReportButton').addEventListener('click', () => this.printReport());
+                
+                // Exportar dados
+                Utils.$('#exportJsonButton').addEventListener('click', () => this.exportData('json'));
+                Utils.$('#exportCsvButton').addEventListener('click', () => this.exportData('csv'));
+                Utils.$('#importJsonButton').addEventListener('click', () => this.importData());
+                
+                // Busca de famílias
+                Utils.$('#searchFamilies').addEventListener('input', (e) => this.filterFamilies(e.target.value));
+                Utils.$('#refreshFamiliesList').addEventListener('click', () => this.loadFamiliesList());
+                
+                // Atualizar relatórios
+                Utils.$("#refreshReports").addEventListener("click", ReportsManager.updateAllReports);
+                Utils.$("#exportPdfButton").addEventListener("click", () => Utils.exportToPdf("relatorios-graficos", "relatorio_sesau.pdf"));
+                
+                // Modal de carregar família
+                Utils.$('#closeLoadFamilyModal').addEventListener('click', () => this.hideLoadFamilyModal());
+                Utils.$('#searchLoadFamilies').addEventListener('input', (e) => this.filterLoadFamilies(e.target.value));
+                
+                // Modal de confirmação
+                Utils.$('#confirmCancel').addEventListener('click', () => this.hideConfirmModal());
+            }
+
+            saveFamilyData() {
+                const responsavelFamiliar = Utils.$('#responsavel_familiar').value.trim();
+                
+                if (!responsavelFamiliar) {
+                    Utils.showStatus(Utils.$('#globalStatusMessage'), 'Por favor, preencha o nome do responsável familiar.', 'error');
+                    return;
+                }
+
+                const familyData = {
+                    id: this.currentFamilyId || Utils.generateId(),
+                    responsavelFamiliar: responsavelFamiliar,
+                    esfResponsavel: Utils.$('#esf_responsavel').value.trim(),
+                    microArea: Utils.$('#micro_area').value.trim(),
+                    responsavelClassificacao: Utils.$('#responsavel_classificacao').value.trim(),
+                    escoreTotal: parseFloat(Utils.$('#escore_total').textContent),
+                    sentinelas: {},
+                    moradores: parseInt(Utils.$('#moradores').value) || 0,
+                    comodos: parseInt(Utils.$('#comodos').value) || 0
+                };
+
+                // Coletar dados das sentinelas
+                AppConfig.riskScaleItems.forEach(item => {
+                    if (item.tipo === "sim_nao") {
+                        const selectedRadio = Utils.$(`input[name="radio_${item.id}"]:checked`);
+                        const multiplier = parseFloat(Utils.$(`#mult_${item.id}`).value) || 1;
+                        const points = parseFloat(Utils.$(`#points_${item.id}`).textContent) || 0;
+                        
+                        familyData.sentinelas[item.id] = {
+                            presente: selectedRadio ? selectedRadio.value !== "0" : false,
+                            valor: selectedRadio ? parseFloat(selectedRadio.value) : 0,
+                            multiplicador: multiplier,
+                            pontos: points
+                        };
+                    }
+                });
+
+                if (StorageManager.save(familyData)) {
+                    this.currentFamilyId = familyData.id;
+                    Utils.showStatus(Utils.$('#globalStatusMessage'), 'Estratificação salva com sucesso!', 'success');
+                    this.loadFamiliesList();
+                    this.reportsManager.generateReports();
+                } else {
+                    Utils.showStatus(Utils.$('#globalStatusMessage'), 'Erro ao salvar estratificação.', 'error');
+                }
+            }
+
+            loadFamilyData(familyId) {
+                const familyData = StorageManager.getById(familyId);
+                if (!familyData) {
+                    Utils.showStatus(Utils.$('#globalStatusMessage'), 'Família não encontrada.', 'error');
+                    return;
+                }
+
+                this.currentFamilyId = familyId;
+                
+                // Preencher campos básicos
+                Utils.$('#responsavel_familiar').value = familyData.responsavelFamiliar || '';
+                Utils.$('#esf_responsavel').value = familyData.esfResponsavel || '';
+                Utils.$('#micro_area').value = familyData.microArea || '';
+                Utils.$('#responsavel_classificacao').value = familyData.responsavelClassificacao || '';
+                
+                // Preencher densidade domiciliar
+                Utils.$('#moradores').value = familyData.moradores || '';
+                Utils.$('#comodos').value = familyData.comodos || '';
+
+                // Preencher sentinelas
+                Object.entries(familyData.sentinelas || {}).forEach(([sentinelaId, data]) => {
+                    if (data.presente) {
+                        const radioSim = Utils.$(`#${sentinelaId}_sim`);
+                        if (radioSim) radioSim.checked = true;
+                    } else {
+                        const radioNao = Utils.$(`#${sentinelaId}_nao`);
+                        if (radioNao) radioNao.checked = true;
+                    }
+                    
+                    const multInput = Utils.$(`#mult_${sentinelaId}`);
+                    if (multInput) multInput.value = data.multiplicador || 1;
+                });
+
+                this.updateTotalScore();
+                Utils.showStatus(Utils.$('#globalStatusMessage'), 'Família carregada com sucesso!', 'success');
+                
+                // Mudar para a aba de nova estratificação
+                Utils.$('.tab-button[data-tab="nova-estratificacao"]').click();
+            }
+
+            clearForm() {
+                this.showConfirmModal(
+                    'Limpar Formulário',
+                    'Tem certeza que deseja limpar todos os campos do formulário?',
+                    () => {
+                        this.currentFamilyId = null;
+                        
+                        // Limpar campos básicos
+                        Utils.$('#responsavel_familiar').value = '';
+                        Utils.$('#esf_responsavel').value = '';
+                        Utils.$('#micro_area').value = '';
+                        Utils.$('#responsavel_classificacao').value = '';
+                        Utils.$('#moradores').value = '';
+                        Utils.$('#comodos').value = '';
+
+                        // Limpar radio buttons
+                        AppConfig.riskScaleItems.forEach(item => {
+                            if (item.tipo === "sim_nao") {
+                                const radios = Utils.$$(`input[name="radio_${item.id}"]`);
+                                radios.forEach(radio => radio.checked = false);
+                                
+                                const multInput = Utils.$(`#mult_${item.id}`);
+                                if (multInput) multInput.value = 1;
+                            }
+                        });
+
+                        this.updateTotalScore();
+                        Utils.showStatus(Utils.$('#globalStatusMessage'), 'Formulário limpo com sucesso!', 'success');
+                    }
+                );
+            }
+
+            loadFamiliesList() {
+                const families = StorageManager.getAll();
+                const familiesList = Utils.$('#familiesList');
+                const noFamiliesMessage = Utils.$('#noFamiliesMessage');
+                
+                if (families.length === 0) {
+                    familiesList.innerHTML = '';
+                    noFamiliesMessage.style.display = 'block';
+                    return;
+                }
+                
+                noFamiliesMessage.style.display = 'none';
+                
+                const sortedFamilies = families.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+                
+                familiesList.innerHTML = sortedFamilies.map(family => {
+                    const risk = Utils.getRiskLevel(family.escoreTotal);
+                    return `
+                        <div class="family-card" data-family-id="${family.id}">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">${family.responsavelFamiliar}</h3>
+                                    <p class="text-sm text-gray-600">ESF: ${family.esfResponsavel || 'N/I'} | Micro Área: ${family.microArea || 'N/I'}</p>
+                                    <p class="text-xs text-gray-500">Atualizado: ${Utils.formatDate(family.updatedAt || family.createdAt)}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="risk-badge ${risk.class}">Risco ${risk.text}</span>
+                                    <span class="font-bold text-lg">${family.escoreTotal.toFixed(1)}</span>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex gap-2">
+                                <button class="btn btn-primary btn-sm load-family-btn" data-family-id="${family.id}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="mr-1" viewBox="0 0 16 16">
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                        <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                                    </svg>
+                                    Carregar
+                                </button>
+                                <button class="btn btn-danger btn-sm delete-family-btn" data-family-id="${family.id}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="mr-1" viewBox="0 0 16 16">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                                    </svg>
+                                    Excluir
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Adicionar event listeners
+                Utils.$$('.load-family-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.loadFamilyData(btn.dataset.familyId);
+                    });
+                });
+                
+                Utils.$$('.delete-family-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deleteFamilyData(btn.dataset.familyId);
+                    });
+                });
+            }
+
+            deleteFamilyData(familyId) {
+                const family = StorageManager.getById(familyId);
+                if (!family) return;
+                
+                this.showConfirmModal(
+                    'Excluir Família',
+                    `Tem certeza que deseja excluir a estratificação da família "${family.responsavelFamiliar}"?`,
+                    () => {
+                        if (StorageManager.delete(familyId)) {
+                            Utils.showStatus(Utils.$('#globalStatusMessage'), 'Família excluída com sucesso!', 'success');
+                            this.loadFamiliesList();
+                            this.reportsManager.generateReports();
+                            
+                            if (this.currentFamilyId === familyId) {
+                                this.clearForm();
+                            }
+                        } else {
+                            Utils.showStatus(Utils.$('#globalStatusMessage'), 'Erro ao excluir família.', 'error');
+                        }
+                    }
+                );
+            }
+
+            filterFamilies(searchTerm) {
+                const familyCards = Utils.$$('.family-card');
+                const term = searchTerm.toLowerCase();
+                
+                familyCards.forEach(card => {
+                    const familyName = card.querySelector('h3').textContent.toLowerCase();
+                    const esf = card.querySelector('p').textContent.toLowerCase();
+                    
+                    if (familyName.includes(term) || esf.includes(term)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            showLoadFamilyModal() {
+                const families = StorageManager.getAll();
+                const loadFamiliesList = Utils.$('#loadFamiliesList');
+                
+                if (families.length === 0) {
+                    loadFamiliesList.innerHTML = '<p class="text-center text-gray-500 py-4">Nenhuma família salva encontrada.</p>';
+                } else {
+                    loadFamiliesList.innerHTML = families.map(family => {
+                        const risk = Utils.getRiskLevel(family.escoreTotal);
+                        return `
+                            <div class="family-card load-family-item" data-family-id="${family.id}">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-medium">${family.responsavelFamiliar}</h4>
+                                        <p class="text-sm text-gray-600">${family.esfResponsavel || 'N/I'} - ${family.microArea || 'N/I'}</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="risk-badge ${risk.class}">${risk.text}</span>
+                                        <span class="font-bold">${family.escoreTotal.toFixed(1)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    // Adicionar event listeners
+                    Utils.$$('.load-family-item').forEach(item => {
+                        item.addEventListener('click', () => {
+                            this.loadFamilyData(item.dataset.familyId);
+                            this.hideLoadFamilyModal();
+                        });
+                    });
+                }
+                
+                Utils.$('#loadFamilyModal').style.display = 'flex';
+            }
+
+            hideLoadFamilyModal() {
+                Utils.$('#loadFamilyModal').style.display = 'none';
+                Utils.$('#searchLoadFamilies').value = '';
+            }
+
+            filterLoadFamilies(searchTerm) {
+                const familyItems = Utils.$$('.load-family-item');
+                const term = searchTerm.toLowerCase();
+                
+                familyItems.forEach(item => {
+                    const familyName = item.querySelector('h4').textContent.toLowerCase();
+                    const details = item.querySelector('p').textContent.toLowerCase();
+                    
+                    if (familyName.includes(term) || details.includes(term)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+
+            exportData(format) {
+                const families = StorageManager.getAll();
+                
+                if (families.length === 0) {
+                    Utils.showStatus(Utils.$('#exportStatus'), 'Nenhum dado para exportar.', 'error');
+                    return;
+                }
+                
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                
+                if (format === 'json') {
+                    const jsonData = JSON.stringify(families, null, 2);
+                    Utils.downloadFile(jsonData, `sesau_estratificacoes_${timestamp}.json`);
+                    Utils.showStatus(Utils.$('#exportStatus'), 'Dados exportados em JSON com sucesso!', 'success');
+                } else if (format === 'csv') {
+                    const csvData = this.convertToCSV(families);
+                    Utils.downloadFile(csvData, `sesau_estratificacoes_${timestamp}.csv`, 'text/csv');
+                    Utils.showStatus(Utils.$('#exportStatus'), 'Dados exportados em CSV com sucesso!', 'success');
+                }
+            }
+
+            convertToCSV(families) {
+                const headers = [
+                    'ID', 'Responsável Familiar', 'ESF Responsável', 'Micro Área', 
+                    'Responsável Classificação', 'Escore Total', 'Moradores', 'Cômodos',
+                    'Data Criação', 'Data Atualização'
+                ];
+                
+                // Adicionar headers das sentinelas
+                AppConfig.riskScaleItems.forEach(item => {
+                    if (item.tipo === 'sim_nao') {
+                        headers.push(`${item.nome} - Presente`);
+                        headers.push(`${item.nome} - Multiplicador`);
+                        headers.push(`${item.nome} - Pontos`);
+                    }
+                });
+                
+                const csvRows = [headers.join(',')];
+                
+                families.forEach(family => {
+                    const row = [
+                        family.id,
+                        `"${family.responsavelFamiliar || ''}"`,
+                        `"${family.esfResponsavel || ''}"`,
+                        `"${family.microArea || ''}"`,
+                        `"${family.responsavelClassificacao || ''}"`,
+                        family.escoreTotal || 0,
+                        family.moradores || 0,
+                        family.comodos || 0,
+                        family.createdAt || '',
+                        family.updatedAt || ''
+                    ];
+                    
+                    // Adicionar dados das sentinelas
+                    AppConfig.riskScaleItems.forEach(item => {
+                        if (item.tipo === 'sim_nao') {
+                            const sentinela = family.sentinelas[item.id] || {};
+                            row.push(sentinela.presente ? 'Sim' : 'Não');
+                            row.push(sentinela.multiplicador || 1);
+                            row.push(sentinela.pontos || 0);
+                        }
+                    });
+                    
+                    csvRows.push(row.join(','));
+                });
+                
+                return csvRows.join('\n');
+            }
+
+            importData() {
+                const fileInput = Utils.$('#importJsonFile');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    Utils.showStatus(Utils.$('#exportStatus'), 'Por favor, selecione um arquivo JSON.', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (!Array.isArray(data)) {
+                            throw new Error('Formato de arquivo inválido');
+                        }
+                        
+                        this.showConfirmModal(
+                            'Importar Dados',
+                            `Tem certeza que deseja importar ${data.length} registros? Isso substituirá todos os dados existentes.`,
+                            () => {
+                                if (StorageManager.import(data)) {
+                                    Utils.showStatus(Utils.$('#exportStatus'), 'Dados importados com sucesso!', 'success');
+                                    this.loadFamiliesList();
+                                    this.reportsManager.generateReports();
+                                    fileInput.value = '';
+                                } else {
+                                    Utils.showStatus(Utils.$('#exportStatus'), 'Erro ao importar dados.', 'error');
+                                }
+                            }
+                        );
+                    } catch (error) {
+                        Utils.showStatus(Utils.$('#exportStatus'), 'Erro ao ler arquivo: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            printReport() {
+                // Implementar geração de PDF (similar ao código original)
+                Utils.showStatus(Utils.$('#printStatus'), 'Funcionalidade de impressão em desenvolvimento.', 'info');
+            }
+
+            showConfirmModal(title, message, onConfirm) {
+                Utils.$('#confirmTitle').textContent = title;
+                Utils.$('#confirmMessage').textContent = message;
+                Utils.$('#confirmModal').style.display = 'flex';
+                
+                const confirmBtn = Utils.$('#confirmOk');
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                
+                newConfirmBtn.addEventListener('click', () => {
+                    onConfirm();
+                    this.hideConfirmModal();
+                });
+            }
+
+            hideConfirmModal() {
+                Utils.$('#confirmModal').style.display = 'none';
+            }
+        }
+
+        // Inicializar aplicação quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', () => {
+            new RiskAssessmentApp();
+        });
+    </script>
+</body>
+</html>
+
